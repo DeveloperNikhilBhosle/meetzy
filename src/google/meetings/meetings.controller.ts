@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { MeetingsService } from './meetings.service';
 import { ApiTags } from '@nestjs/swagger';
 import { scheduleMeet } from './data-models/google-meeting';
@@ -14,5 +14,11 @@ export class MeetingsController {
     console.log(meetdetails);
     return await this.meetingsService.scheduleMeet(meetdetails);
 
+  }
+
+  @Get('time-slots')
+  async getTimeSlots(@Param('meeting_id') meeting_id: number) {
+    // TODO: Implement this method
+    // var x = new { "meeting_id": meeting_id };
   }
 }

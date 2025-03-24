@@ -23,3 +23,8 @@ export class scheduleMeet {
     secondary_email: string;
 
 }
+
+export class TimeSlotsIP {
+    @ApiProperty()
+    meeting_id: number;
+}
