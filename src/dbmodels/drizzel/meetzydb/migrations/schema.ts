@@ -1,8 +1,23 @@
-import { pgTable, pgSchema, serial, varchar, boolean, timestamp, integer, text, numeric, bigint, unique, time, foreignKey, check } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, serial, integer, varchar, text, timestamp, boolean, numeric, bigint, unique, time, foreignKey, check } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const masters = pgSchema("masters");
 
+
+export const user_meetingsInMasters = masters.table("user_meetings", {
+	id: serial().primaryKey().notNull(),
+	user_id: integer().notNull(),
+	title: varchar({ length: 255 }).notNull(),
+	description: text(),
+	host: varchar({ length: 255 }).notNull(),
+	meeting_type_id: integer().notNull(),
+	default_attendees: text(),
+	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	last_updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	is_active: boolean().default(true),
+	duration_min: numeric().default('15'),
+	account_id: numeric(),
+});
 
 export const user_rolesInMasters = masters.table("user_roles", {
 	id: serial().primaryKey().notNull(),
@@ -27,21 +42,6 @@ export const usersInMasters = masters.table("users", {
 	last_updated_at: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	param_text: text(),
 	param_num: numeric(),
-});
-
-export const user_meetingsInMasters = masters.table("user_meetings", {
-	id: serial().primaryKey().notNull(),
-	user_id: integer().notNull(),
-	title: varchar({ length: 255 }).notNull(),
-	description: text(),
-	host: varchar({ length: 255 }).notNull(),
-	meeting_type_id: integer().notNull(),
-	default_attendees: text(),
-	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	last_updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	is_active: boolean().default(true),
-	duration_min: numeric().default('15'),
-	account_id: numeric(),
 });
 
 export const user_accountsInMasters = masters.table("user_accounts", {
@@ -133,4 +133,22 @@ export const rolesInMasters = masters.table("roles", {
 	last_updated_at: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	param_text: text(),
 	param_num: numeric(),
+});
+
+export const user_scheduled_meetingsInMasters = masters.table("user_scheduled_meetings", {
+	id: serial().primaryKey().notNull(),
+	user_id: integer().notNull(),
+	title: varchar({ length: 255 }).notNull(),
+	description: text(),
+	host: varchar({ length: 255 }).notNull(),
+	meeting_type_id: integer().notNull(),
+	default_attendees: text(),
+	start_time: timestamp({ withTimezone: true, mode: 'string' }).notNull(),
+	end_time: timestamp({ withTimezone: true, mode: 'string' }).notNull(),
+	is_active: boolean().default(true),
+	is_cancelled: boolean().default(false),
+	is_rescheduled: boolean().default(false),
+	account_id: numeric(),
+	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	last_updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 });

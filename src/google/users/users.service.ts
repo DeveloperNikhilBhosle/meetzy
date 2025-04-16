@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { users } from './users';
+import { userList, users } from './users';
 import { MeetZyDrizzleService } from 'src/dbmodels/meetzydb/meetzydb.drizzle.service';
-import { menusInMasters, rolesInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
-import { desc, eq, like, and, sql, or } from 'drizzle-orm';
+import { menusInMasters, rolesInMasters, user_meetingsInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
+import { desc, eq, like, and, ne, or, inArray, sql } from 'drizzle-orm';
 
 @Injectable()
 export class UsersService {
@@ -44,6 +44,18 @@ export class UsersService {
         return defaultMenus;
 
 
+
+    }
+
+    async GetActiveMeetings(ip: userList) {
+
+        const query = "select * from masters.get_meeting_list('" + ip.from_date + "','" + ip.to_date + "')";
+        console.log(query, 'query');
+        const data = await this.meetzy.db.execute(sql`${sql.raw(query)};`);
+
+        console.log(data, 'data');
+
+        return data.rows;
 
     }
 }
