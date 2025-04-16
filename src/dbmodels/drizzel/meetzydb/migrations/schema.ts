@@ -1,4 +1,4 @@
-import { pgTable, pgSchema, serial, varchar, bigint, boolean, timestamp, text, numeric, integer, unique } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, serial, varchar, bigint, boolean, timestamp, text, numeric, integer, unique, time } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const masters = pgSchema("masters");
@@ -74,3 +74,16 @@ export const user_accountsInMasters = masters.table("user_accounts", {
 }, (table) => [
 	unique("user_accounts_email_key").on(table.email),
 ]);
+
+export const user_timeslotsInMasters = masters.table("user_timeslots", {
+	id: serial().primaryKey().notNull(),
+	user_id: integer().notNull(),
+	meeting_id: integer().notNull(),
+	account_id: integer().notNull(),
+	date: timestamp({ withTimezone: true, mode: 'string' }),
+	day: varchar({ length: 20 }),
+	from_time: time().notNull(),
+	to_time: time().notNull(),
+	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	created_by: integer().notNull(),
+});

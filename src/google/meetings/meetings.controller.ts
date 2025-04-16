@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { MeetingsService } from './meetings.service';
 import { ApiTags } from '@nestjs/swagger';
 import { scheduleMeet } from './data-models/google-meeting';
@@ -17,7 +17,16 @@ export class MeetingsController {
   }
 
   @Get('time-slots')
-  async getTimeSlots(@Param('meeting_id') meeting_id: number) {
+  async getTimeSlots1(@Query('meeting_id') meeting_id: number) {
+
+    return await this.meetingsService.GetAvailability(meeting_id);
+    // TODO: Implement this method
+    // var x = new { "meeting_id": meeting_id };
+  }
+
+  @Get('read-gmail')
+  async ReadGmail() {
+    return await this.meetingsService.GetEmailSync();
     // TODO: Implement this method
     // var x = new { "meeting_id": meeting_id };
   }

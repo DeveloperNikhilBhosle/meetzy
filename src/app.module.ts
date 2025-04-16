@@ -13,7 +13,7 @@ import 'dotenv/config';
     }),
     MeetZyDatabaseModule.forRootAsync({
       useFactory: () => ({
-        url: "",
+        url: "postgresql://pguser:R5sWDsMWc7aYHfQc@ec2-13-235-15-173.ap-south-1.compute.amazonaws.com:5432/MeetZyDBDev",
       }),
     }),
     MeetingsModule],
