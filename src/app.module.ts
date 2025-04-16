@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { MeetingsModule } from './google/meetings/meetings.module';
 import { ConfigModule } from '@nestjs/config';
 import { MeetZyDatabaseModule } from './dbmodels/meetzydb/meetzydb.drizzle.module';
+import { UsersModule } from './google/users/users.module';
 import 'dotenv/config';
 
 @Module({
@@ -16,7 +17,8 @@ import 'dotenv/config';
         url: "postgresql://pguser:R5sWDsMWc7aYHfQc@ec2-13-235-15-173.ap-south-1.compute.amazonaws.com:5432/MeetZyDBDev",
       }),
     }),
-    MeetingsModule],
+    MeetingsModule,
+    UsersModule],
   controllers: [AppController],
   providers: [AppService],
 })
