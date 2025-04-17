@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { userList, users } from './users';
 import { MeetZyDrizzleService } from 'src/dbmodels/meetzydb/meetzydb.drizzle.service';
 import { menusInMasters, rolesInMasters, user_meetingsInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
 import { desc, eq, like, and, ne, or, inArray, sql } from 'drizzle-orm';
+import { OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class UsersService {
@@ -47,7 +48,27 @@ export class UsersService {
 
     }
 
-    async GetActiveMeetings(ip: userList) {
+    async GetActiveMeetings(ip: userList, token: string) {
+
+        //#region Validate Token
+
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+
+        if (!payload) throw new UnauthorizedException('Invalid Google token');
+
+
+        //#endregion
+
+        const email = payload.email;
+        const emails = await this.meetzy.db.select()
+            .from(usersInMasters)
+            .where(and(eq(usersInMasters.email, email, eq(usersInMasters.is_active, true)));
+
 
         const query = "select * from masters.get_meeting_list('" + ip.from_date + "','" + ip.to_date + "')";
         console.log(query, 'query');

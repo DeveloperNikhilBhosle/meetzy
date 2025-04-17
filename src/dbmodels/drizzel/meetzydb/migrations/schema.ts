@@ -1,4 +1,4 @@
-import { pgTable, pgSchema, serial, integer, varchar, text, timestamp, boolean, numeric, bigint, unique, time, foreignKey, check } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, serial, integer, varchar, text, timestamp, boolean, numeric, bigint, unique, time, foreignKey, check, uuid } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const masters = pgSchema("masters");
@@ -34,7 +34,7 @@ export const user_rolesInMasters = masters.table("user_roles", {
 export const usersInMasters = masters.table("users", {
 	id: serial().primaryKey().notNull(),
 	name: varchar({ length: 255 }).notNull(),
-	email: varchar({ length: 255 }).notNull(),
+	email: text().notNull(),
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	phone_number: bigint({ mode: "number" }),
 	is_active: boolean().notNull(),
@@ -151,4 +151,9 @@ export const user_scheduled_meetingsInMasters = masters.table("user_scheduled_me
 	account_id: numeric(),
 	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	last_updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	meeting_id: uuid().defaultRandom(),
+	meeting_title: text(),
+	meeting_link: text(),
+	meeting_type: text(),
+	platform: text(),
 });

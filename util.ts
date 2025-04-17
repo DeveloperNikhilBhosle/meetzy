@@ -46,4 +46,10 @@ export class util {
         console.log("$1, $2 => $3", date, time, from);
         return new Date(from);
     }
+
+    static extractBearerToken(header: string): string | null {
+        const parts = header.split(' ');
+        if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
+        return parts[1];
+    }
 }

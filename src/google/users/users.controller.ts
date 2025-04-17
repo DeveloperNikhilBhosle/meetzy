@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Query, Body } from '@nestjs/common';
+import { Controller, Get, Post, Query, Body, Headers, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiTags } from '@nestjs/swagger';
 import { userList, users } from './users';
+import { util } from '../../../util';
 
 @Controller('users')
 @ApiTags('Users')
@@ -15,7 +16,18 @@ export class UsersController {
   }
 
   @Post('active-meetings')
-  async GetActiveMeetings(@Body() ip: userList) {
+
+  async GetActiveMeetings(@Headers('authorization') authHeader: string, @Body() ip: userList) {
+
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization header missing');
+    }
+
+    const token = util.extractBearerToken(authHeader);
+    if (!token) {
+      throw new UnauthorizedException('Missing token or email');
+    }
+
     return await this.usersService.GetActiveMeetings(ip);
   }
 }

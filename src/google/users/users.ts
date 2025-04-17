@@ -7,9 +7,6 @@ export class users {
 
 export class userList {
     @ApiProperty()
-    email_id: string[] = []
-
-    @ApiProperty()
     from_date: string
 
     @ApiProperty()
