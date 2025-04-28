@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { userList, users } from './users';
 import { MeetZyDrizzleService } from 'src/dbmodels/meetzydb/meetzydb.drizzle.service';
-import { menusInMasters, rolesInMasters, user_meetingsInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
+import { menusInMasters, rolesInMasters, user_accountsInMasters, user_meetingsInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
 import { desc, eq, like, and, ne, or, inArray, sql } from 'drizzle-orm';
 import { OAuth2Client } from 'google-auth-library';
 
@@ -34,6 +34,29 @@ export class UsersService {
 
         }
 
+        // Add User if not exists
+        var valuesUsers = {
+            name: ip.email_id.split("@")[0],
+            email: ip.email_id,
+            is_active: true,
+            created_at: sql`CURRENT_TIMESTAMP`,
+            last_updated_at: sql`CURRENT_TIMESTAMP`
+        };
+        const user = await this.meetzy.db.insert(usersInMasters).values(valuesUsers).returning();
+
+        console.log(user, 'usersssss');
+
+        var valuesUR = {
+            name: ip.email_id.split("@")[0],
+            created_at: sql`CURRENT_TIMESTAMP`,
+            last_updated_at: sql`CURRENT_TIMESTAMP`,
+            user_id: user[0].id,
+            role_id: 2,
+            is_active: true
+        }
+
+        await this.meetzy.db.insert(user_rolesInMasters).values(valuesUR);
+
         var defaultMenus = await this.meetzy.db.select({
             id: menusInMasters.id,
             title: menusInMasters.title
@@ -65,9 +88,12 @@ export class UsersService {
         //#endregion
 
         const email = payload.email;
-        const emails = await this.meetzy.db.select()
+        const email_accounts = await this.meetzy.db.select({
+            email: user_accountsInMasters.email
+        })
             .from(usersInMasters)
-            .where(and(eq(usersInMasters.email, email, eq(usersInMasters.is_active, true)));
+            .innerJoin(user_accountsInMasters, and(eq(usersInMasters.id, user_accountsInMasters.user_id), eq(user_accountsInMasters.is_active, true)))
+            .where(and(eq(usersInMasters.id, ip.user_id), eq(usersInMasters.is_active, true)));
 
 
         const query = "select * from masters.get_meeting_list('" + ip.from_date + "','" + ip.to_date + "')";
@@ -78,5 +104,14 @@ export class UsersService {
 
         return data.rows;
 
+    }
+
+    async GetScores(email: string) {
+        return {
+            scheduled: 234,
+            completed: 190,
+            active: 12,
+            cancelled: 32
+        }
     }
 }
