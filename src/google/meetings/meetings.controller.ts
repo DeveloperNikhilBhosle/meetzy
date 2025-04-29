@@ -1,10 +1,13 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { MeetingsService } from './meetings.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { scheduleMeet } from './data-models/google-meeting';
+import { JwtAuthGuard } from '../auth/jwt.auth';
 
 @Controller('api/schedule/')
 @ApiTags('Google Meetings API')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class MeetingsController {
   constructor(private readonly meetingsService: MeetingsService) { }
 

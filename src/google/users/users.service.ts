@@ -4,14 +4,16 @@ import { MeetZyDrizzleService } from 'src/dbmodels/meetzydb/meetzydb.drizzle.ser
 import { menusInMasters, rolesInMasters, user_accountsInMasters, user_meetingsInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
 import { desc, eq, like, and, ne, or, inArray, sql } from 'drizzle-orm';
 import { OAuth2Client } from 'google-auth-library';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly meetzy: MeetZyDrizzleService) { }
+    constructor(private readonly meetzy: MeetZyDrizzleService, private jwtService: JwtService) { }
 
     async GetUserMenus(ip: users) {
+        console.log(process.env.JWT_ACCESS_SECRET, 'pauleoas');
         const users = await this.meetzy.db.select().from(usersInMasters)
-            .where(and(eq(usersInMasters.email, ip.email_id)))
+            .where(and(eq(usersInMasters.email, ip.email_id), eq(usersInMasters.is_active, true)))
             .orderBy(desc(usersInMasters.is_active));
 
         console.log("Users = ", users)
@@ -28,8 +30,33 @@ export class UsersService {
 
             console.log(menus, 'menus');
 
+            const payload = {
+                user_id: users[0].id,
+                email: ip.email_id
+            }
+
+
+
+            const access_token = this.jwtService.sign(payload, {
+                secret: process.env.JWT_ACCESS_SECRET,
+                expiresIn: '1h',
+            });
+
+            const refresh_token = this.jwtService.sign(payload, {
+                secret: process.env.JWT_REFRESH_SECRET,
+                expiresIn: '7d',
+            });
+
+            const unique = Array.from(
+                new Map(menus.map(item => [item.id, item])).values()
+            );
+
             if (menus.length > 0) {
-                return menus;
+                return {
+                    access_token: access_token,
+                    refresh_token: refresh_token,
+                    menus: unique
+                };
             }
 
         }
@@ -65,7 +92,26 @@ export class UsersService {
             .innerJoin(user_role_menusInMasters, and(eq(menusInMasters.id, user_role_menusInMasters.menu_id), eq(user_role_menusInMasters.is_active, true)))
             .where(and(eq(user_role_menusInMasters.role_id, 2)));
 
-        return defaultMenus;
+        const payload = {
+            user_id: user[0].id,
+            email: ip.email_id
+        }
+
+        const access_token = this.jwtService.sign(payload, {
+            secret: process.env.JWT_ACCESS_SECRET,
+            expiresIn: '1h',
+        });
+
+        const refresh_token = this.jwtService.sign(payload, {
+            secret: process.env.JWT_REFRESH_SECRET,
+            expiresIn: '7d',
+        });
+
+        return {
+            access_token: access_token,
+            refresh_token: refresh_token,
+            menus: defaultMenus
+        };
 
 
 

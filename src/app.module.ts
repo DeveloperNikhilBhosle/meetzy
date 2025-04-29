@@ -6,9 +6,10 @@ import { ConfigModule } from '@nestjs/config';
 import { MeetZyDatabaseModule } from './dbmodels/meetzydb/meetzydb.drizzle.module';
 import { UsersModule } from './google/users/users.module';
 import 'dotenv/config';
+import { AuthModule } from './google/auth/auth.module';
 
 @Module({
-  imports: [
+  imports: [AuthModule,
     ConfigModule.forRoot({
       isGlobal: true
     }),

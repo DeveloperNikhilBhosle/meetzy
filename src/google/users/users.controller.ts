@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Query, Body, Headers, UnauthorizedException } from '@nestjs/common';
+import { Controller, Request, Get, Post, Query, Body, Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Header, userList, users } from './users';
 import { util } from '../../../util';
 import { Helper } from 'helper';
+import { JwtAuthGuard } from '../auth/jwt.auth';
 
 @Controller('users')
 @ApiTags('Users')
@@ -16,8 +17,9 @@ export class UsersController {
     return await this.usersService.GetUserMenus(ip);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('active-meetings')
-
   async GetActiveMeetings(@Headers('authorization') authHeader: string, @Body() ip: userList) {
 
     if (!authHeader) {
@@ -33,18 +35,15 @@ export class UsersController {
   }
 
   @Post('user-dashboard-score')
-  async GetScores(@Headers() authHeader: Header) {
-    console.log(authHeader, 'auth');
-    if (!authHeader) {
-      throw new UnauthorizedException('Authorization header missing');
-    }
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async GetScores(@Request() req) {
+    console.log("======================================================")
 
-    // const token = util.extractBearerToken(authHeader.token);
-    // if (!token) {
-    //   throw new UnauthorizedException('Missing token or email');
-    // }
+    const token = req.headers.authorization?.split(' ')[1];
+    const { userId, email } = req.user;  // Extract userId and email from req.user
 
-    const email = await new Helper().GetEmailByGoogleToken(authHeader.token) ?? 'defaultString';
+    // const email = await new Helper().GetEmailByGoogleToken(authHeader.token) ?? 'defaultString';
     console.log(email, 'emaoil');
 
     return await this.usersService.GetScores(email?.toString());
