@@ -38,14 +38,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async GetScores(@Request() req) {
-    console.log("======================================================")
-
-    const token = req.headers.authorization?.split(' ')[1];
     const { userId, email } = req.user;  // Extract userId and email from req.user
-
-    // const email = await new Helper().GetEmailByGoogleToken(authHeader.token) ?? 'defaultString';
-    console.log(email, 'emaoil');
-
     return await this.usersService.GetScores(email?.toString());
 
   }
