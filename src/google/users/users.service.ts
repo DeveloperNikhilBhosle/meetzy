@@ -31,7 +31,7 @@ export class UsersService {
             console.log(menus, 'menus');
 
             const payload = {
-                user_id: users[0].id,
+                userId: users[0].id,
                 email: ip.email_id
             }
 
@@ -93,8 +93,9 @@ export class UsersService {
             .where(and(eq(user_role_menusInMasters.role_id, 2)));
 
         const payload = {
-            user_id: user[0].id,
+            userId: user[0].id,
             email: ip.email_id
+
         }
 
         const access_token = this.jwtService.sign(payload, {

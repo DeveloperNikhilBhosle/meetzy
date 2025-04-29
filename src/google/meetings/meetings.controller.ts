@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Request, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { MeetingsService } from './meetings.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { scheduleMeet } from './data-models/google-meeting';
@@ -32,5 +32,13 @@ export class MeetingsController {
     return await this.meetingsService.GetEmailSync();
     // TODO: Implement this method
     // var x = new { "meeting_id": meeting_id };
+  }
+
+  @Get('meetings-master')
+  async GetALLMeetingsMaster(@Request() req) {
+    console.log(req, 'rew')
+    const { userId, email } = req.user;
+    console.log(userId, 'userId');
+    return await this.meetingsService.GetALLMeetingsMaster(userId);
   }
 }

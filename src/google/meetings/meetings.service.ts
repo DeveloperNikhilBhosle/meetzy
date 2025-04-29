@@ -953,6 +953,14 @@ export class MeetingsService {
     //#endregion
 
 
+    async GetALLMeetingsMaster(userId: number) {
+        console.log(userId, 'userId');
+        const meetings = await this.meetzy.db.select()
+            .from(user_meetingsInMasters)
+            .where(and(eq(user_meetingsInMasters.user_id, userId), eq(user_meetingsInMasters.is_active, true)));
+
+        return meetings;
+    }
 }
 
 

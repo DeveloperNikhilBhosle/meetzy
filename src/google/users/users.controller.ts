@@ -30,7 +30,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   async GetScores(@Request() req) {
-    const { userId, email } = req.user;  // Extract userId and email from req.user
+    const { user_id, email } = req.user;  // Extract userId and email from req.user
+    console.log(user_id, 'userId new');
     return await this.usersService.GetScores(email?.toString());
 
   }
