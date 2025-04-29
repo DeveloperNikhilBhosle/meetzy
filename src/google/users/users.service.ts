@@ -117,29 +117,14 @@ export class UsersService {
 
     }
 
-    async GetActiveMeetings(ip: userList, token: string) {
+    async GetActiveMeetings(ip: userList, email: string, user_id: number) {
 
-        //#region Validate Token
-
-        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-        const ticket = await client.verifyIdToken({
-            idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const payload = ticket.getPayload();
-
-        if (!payload) throw new UnauthorizedException('Invalid Google token');
-
-
-        //#endregion
-
-        const email = payload.email;
         const email_accounts = await this.meetzy.db.select({
             email: user_accountsInMasters.email
         })
             .from(usersInMasters)
             .innerJoin(user_accountsInMasters, and(eq(usersInMasters.id, user_accountsInMasters.user_id), eq(user_accountsInMasters.is_active, true)))
-            .where(and(eq(usersInMasters.id, ip.user_id), eq(usersInMasters.is_active, true)));
+            .where(and(eq(usersInMasters.id, user_id), eq(usersInMasters.is_active, true)));
 
 
         const query = "select * from masters.get_meeting_list('" + ip.from_date + "','" + ip.to_date + "')";

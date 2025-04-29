@@ -11,9 +11,6 @@ export class userList {
 
     @ApiProperty()
     to_date: string
-
-    @ApiProperty()
-    user_id: number
 }
 
 export class Header {

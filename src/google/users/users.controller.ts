@@ -20,18 +20,10 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Post('active-meetings')
-  async GetActiveMeetings(@Headers('authorization') authHeader: string, @Body() ip: userList) {
+  async GetActiveMeetings(@Request() req, @Body() ip: userList) {
 
-    if (!authHeader) {
-      throw new UnauthorizedException('Authorization header missing');
-    }
-
-    const token = util.extractBearerToken(authHeader);
-    if (!token) {
-      throw new UnauthorizedException('Missing token or email');
-    }
-
-    return await this.usersService.GetActiveMeetings(ip, token);
+    const { userId, email } = req.user;
+    return await this.usersService.GetActiveMeetings(ip, email, userId);
   }
 
   @Post('user-dashboard-score')
