@@ -1,23 +1,8 @@
-import { pgTable, pgSchema, serial, integer, varchar, text, timestamp, boolean, numeric, unique, time, foreignKey, check, bigint, uuid } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, serial, varchar, boolean, timestamp, integer, text, numeric, unique, time, foreignKey, check, bigint, uuid } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const masters = pgSchema("masters");
 
-
-export const user_meetingsInMasters = masters.table("user_meetings", {
-	id: serial().primaryKey().notNull(),
-	user_id: integer().notNull(),
-	title: varchar({ length: 255 }).notNull(),
-	description: text(),
-	host: varchar({ length: 255 }).notNull(),
-	meeting_type_id: integer().notNull(),
-	default_attendees: text(),
-	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	last_updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
-	is_active: boolean().default(true),
-	duration_min: numeric().default('15'),
-	account_id: numeric(),
-});
 
 export const user_rolesInMasters = masters.table("user_roles", {
 	id: serial().primaryKey().notNull(),
@@ -134,6 +119,22 @@ export const usersInMasters = masters.table("users", {
 	param_text: text(),
 	param_num: numeric(),
 	enterprise_id: numeric(),
+});
+
+export const user_meetingsInMasters = masters.table("user_meetings", {
+	id: serial().primaryKey().notNull(),
+	user_id: integer().notNull(),
+	title: varchar({ length: 255 }).notNull(),
+	description: text(),
+	host: varchar({ length: 255 }).notNull(),
+	meeting_type_id: integer().notNull(),
+	default_attendees: text(),
+	created_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	last_updated_at: timestamp({ withTimezone: true, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	is_active: boolean().default(true),
+	duration_min: numeric().default('15'),
+	account_id: numeric(),
+	meeting_link: text(),
 });
 
 export const user_scheduled_meetingsInMasters = masters.table("user_scheduled_meetings", {

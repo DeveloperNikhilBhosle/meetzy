@@ -4,12 +4,13 @@ import { AddMeeting, scheduleMeet } from './data-models/google-meeting';
 import { user_accountsInMasters, user_meeting_detailsInMasters, user_meetingsInMasters, user_timeslotsInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
 import { desc, eq, like, and, sql, or } from 'drizzle-orm';
 import { util } from '../../../util';
-import { bytes } from 'drizzle-orm/gel-core';
+import { bytes, uuid } from 'drizzle-orm/gel-core';
 import { datetime } from 'drizzle-orm/mysql-core';
 import { parseISO, format, isBefore, isAfter, addMinutes } from 'date-fns';
 import * as moment from 'moment';
 import { DateTime } from 'luxon';
 import { title } from 'process';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class MeetingsService {
@@ -976,6 +977,7 @@ export class MeetingsService {
             .from(user_accountsInMasters)
             .where(and(eq(user_accountsInMasters.user_id, userId.toString()), eq(user_accountsInMasters.is_active, true), eq(user_accountsInMasters.email, ip.host_email)));
 
+        const meeting_link = process.env.MEETZY_MEET_LINK_BASE_URL + uuidv4().toString()
         // Online Meeting 
         if (ip.meeting_type_id == 1) {
             const objOnline = {
@@ -989,7 +991,8 @@ export class MeetingsService {
                 last_updated_at: sql`CURRENT_TIMESTAMP`,
                 is_active: true,
                 duration_min: ip.duration_min,
-                account_id: acc[0].id.toString()
+                account_id: acc[0].id.toString(),
+                meeting_link: meeting_link
             }
             await this.meetzy.db.insert(user_meetingsInMasters).values(objOnline);
             return {
@@ -1011,7 +1014,8 @@ export class MeetingsService {
                 last_updated_at: sql`CURRENT_TIMESTAMP`,
                 is_active: true,
                 duration_min: ip.duration_min,
-                account_id: acc[0].id.toString()
+                account_id: acc[0].id.toString(),
+                meeting_link: meeting_link
             }
             const meet = await this.meetzy.db.insert(user_meetingsInMasters).values(objOnline).returning();
 
@@ -1047,7 +1051,8 @@ export class MeetingsService {
                 last_updated_at: sql`CURRENT_TIMESTAMP`,
                 is_active: true,
                 duration_min: '0',
-                account_id: acc[0].id.toString()
+                account_id: acc[0].id.toString(),
+                meeting_link: meeting_link
             }
             await this.meetzy.db.insert(user_meetingsInMasters).values(objEvent);
             return {
@@ -1068,7 +1073,8 @@ export class MeetingsService {
                 last_updated_at: sql`CURRENT_TIMESTAMP`,
                 is_active: true,
                 duration_min: ip.duration_min,
-                account_id: acc[0].id.toString()
+                account_id: acc[0].id.toString(),
+                meeting_link: meeting_link
             }
             const meet = await this.meetzy.db.insert(user_meetingsInMasters).values(objOnline).returning();
 
@@ -1097,7 +1103,8 @@ export class MeetingsService {
                 last_updated_at: sql`CURRENT_TIMESTAMP`,
                 is_active: true,
                 duration_min: ip.duration_min,
-                account_id: acc[0].id.toString()
+                account_id: acc[0].id.toString(),
+                meeting_link: meeting_link
             }
             const meet = await this.meetzy.db.insert(user_meetingsInMasters).values(objOnline).returning();
 
