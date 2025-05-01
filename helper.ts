@@ -14,4 +14,12 @@ export class Helper {
         return payload.email;
     }
 
+    static SUCCESSResponse(code: number, message: string, data?: any) {
+        return {
+            status_code: code,
+            message: message,
+            data: data ? data : {}
+        }
+    }
+
 }

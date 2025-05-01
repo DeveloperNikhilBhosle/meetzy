@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { userList, users } from './users';
+import { UserAccount, userList, users } from './users';
 import { MeetZyDrizzleService } from 'src/dbmodels/meetzydb/meetzydb.drizzle.service';
-import { menusInMasters, rolesInMasters, user_accountsInMasters, user_meetingsInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
+import { enterprisesInMasters, menusInMasters, rolesInMasters, user_accountsInMasters, user_meetingsInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
 import { desc, eq, like, and, ne, or, inArray, sql } from 'drizzle-orm';
 import { OAuth2Client } from 'google-auth-library';
 import { JwtService } from '@nestjs/jwt';
+import { Helper } from 'helper';
 
 @Injectable()
 export class UsersService {
@@ -108,11 +109,13 @@ export class UsersService {
             expiresIn: '7d',
         });
 
-        return {
+        const res = {
             access_token: access_token,
             refresh_token: refresh_token,
             menus: defaultMenus
         };
+
+        return Helper.SUCCESSResponse(200, "SUCCCESS", res);
 
 
 
@@ -134,17 +137,20 @@ export class UsersService {
 
         console.log(data, 'data');
 
-        return data.rows;
+        const res = data.rows;
+        return Helper.SUCCESSResponse(200, "SUCCCESS", { meetings: res });
 
     }
 
-    async GetScores(email: string) {
-        return {
+    async GetScores(userId: string) {
+        const res = {
             scheduled: 234,
             completed: 190,
             active: 12,
             cancelled: 32
         }
+
+        return Helper.SUCCESSResponse(200, "SUCCCESS", res);
     }
 
     async GetUserProfile(userId: number) {
@@ -180,13 +186,116 @@ export class UsersService {
             });
         });
 
-        return {
+        var res = {
             name: user[0].name,
             email: user[0].email,
             mobile_number: user[0].mobile_number,
             image: user[0].image,
             linkedAcc: linkedAcc
         }
+        return Helper.SUCCESSResponse(200, "SUCCCESS", res);
+
+    }
+
+    async LinkUserAccount(userId: number, ip: UserAccount) {
+        const user = await this.meetzy.db.select()
+            .from(usersInMasters)
+            .where(and(eq(usersInMasters.id, userId), eq(usersInMasters.is_active, true)));
+
+        if (user.length == 0) {
+            throw new BadRequestException("Invalid User Request");
+        }
+
+        const enterprises = await this.meetzy.db.select()
+            .from(enterprisesInMasters)
+            .where(and(eq(enterprisesInMasters.id, ip.enterprise_id), eq(enterprisesInMasters.is_active, true)));
+
+        if (enterprises.length == 0) {
+            throw new BadRequestException("Enterprise is not active or disabled, Please check or contact administrator");
+        }
+
+        //#region  Generate Tokens 
+
+        const axios = require('axios');
+        const qs = require('qs');
+        let data = qs.stringify({
+            'code': ip.code,
+            'client_id': enterprises[0].client_id,
+            'client_secret': enterprises[0].client_secret,
+            'redirect_uri': enterprises[0].redirect_url,
+            'grant_type': 'authorization_code'
+        });
+
+        let config = {
+            method: 'post',
+            maxBodyLength: Infinity,
+            url: process.env.GOOGLE_TOKEN_API,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data: data
+        };
+
+        const token = axios.request(config)
+            .then((response) => {
+                console.log(JSON.stringify(response.data));
+                return JSON.stringify(response.data)
+            })
+            .catch((error) => {
+                console.log(error);
+                throw new BadRequestException("Something went wrong While generating token");
+            });
+
+        //#endregion
+
+        const userAccObj = {
+            user_id: userId.toString(),
+            name: ip.name,
+            email: ip.email,
+            is_active: true,
+            client_id: enterprises[0].client_id,
+            client_secret: enterprises[0].client_secret,
+            code: ip.code,
+            created_at: sql`CURRENT_TIMESTAMP`,
+            last_updated_at: sql`CURRENT_TIMESTAMP`,
+            is_validated: true,
+            redirect_url: enterprises[0].redirect_url,
+            refresh_token: token.refresh_token
+        }
+
+        await this.meetzy.db.insert(user_accountsInMasters).values(userAccObj);
+        return Helper.SUCCESSResponse(200, "SUCCESS");
+    }
+
+    async GenerateLink(userId: number, enterprise_id: number) {
+
+        const user = await this.meetzy.db.select()
+            .from(usersInMasters)
+            .where(and(eq(usersInMasters.id, userId), eq(usersInMasters.is_active, true)));
+
+        if (user.length == 0) {
+            throw new BadRequestException("Invalid User Request");
+        }
+
+        const enterprises = await this.meetzy.db.select()
+            .from(enterprisesInMasters)
+            .where(and(eq(enterprisesInMasters.id, enterprise_id), eq(enterprisesInMasters.is_active, true)));
+
+        if (enterprises.length == 0) {
+            throw new BadRequestException("Enterprise is not active or disabled, Please check or contact administrator");
+        }
+
+        let verification_link = process.env.USER_VERIFICATION_LINK;
+        if (verification_link == null || verification_link == undefined) {
+            throw new BadRequestException("Verification link not able to generate, please contact to admin");
+        }
+
+        const client_id_new: string = enterprises[0].client_id?.toString() || '';
+        const redirect_url_new: string = enterprises[0].redirect_url?.toString() || '';
+        verification_link = verification_link.replace("CLIENTIDFORENTERPRISE", client_id_new)
+            .replace("REDIRECTURLFORENTERPRISE", redirect_url_new);
+
+        return Helper.SUCCESSResponse(200, "SUCCESS", { verification_link: verification_link })
 
     }
 }

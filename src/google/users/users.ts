@@ -17,3 +17,22 @@ export class Header {
     @ApiProperty()
     token: string
 }
+
+export class UserAccount {
+    @ApiProperty()
+    name: string
+
+    @ApiProperty()
+    email: string
+
+    @ApiProperty()
+    enterprise_id: number
+
+    @ApiProperty()
+    code: string
+}
+
+export class GenerateLink {
+    @ApiProperty()
+    enterprise_id: number
+}

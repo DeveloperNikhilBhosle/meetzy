@@ -1,4 +1,4 @@
-import { pgTable, pgSchema, serial, integer, varchar, text, timestamp, boolean, numeric, bigint, unique, time, foreignKey, check, uuid } from "drizzle-orm/pg-core"
+import { pgTable, pgSchema, serial, integer, varchar, text, timestamp, boolean, numeric, unique, time, foreignKey, check, bigint, uuid } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const masters = pgSchema("masters");
@@ -27,19 +27,6 @@ export const user_rolesInMasters = masters.table("user_roles", {
 	last_updated_at: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	user_id: integer().notNull(),
 	role_id: integer().notNull(),
-	param_text: text(),
-	param_num: numeric(),
-});
-
-export const usersInMasters = masters.table("users", {
-	id: serial().primaryKey().notNull(),
-	name: varchar({ length: 255 }).notNull(),
-	email: text().notNull(),
-	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
-	phone_number: bigint({ mode: "number" }),
-	is_active: boolean().notNull(),
-	created_at: timestamp({ mode: 'string' }).defaultNow().notNull(),
-	last_updated_at: timestamp({ mode: 'string' }).defaultNow().notNull(),
 	param_text: text(),
 	param_num: numeric(),
 });
@@ -135,6 +122,20 @@ export const rolesInMasters = masters.table("roles", {
 	param_num: numeric(),
 });
 
+export const usersInMasters = masters.table("users", {
+	id: serial().primaryKey().notNull(),
+	name: varchar({ length: 255 }).notNull(),
+	email: text().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	phone_number: bigint({ mode: "number" }),
+	is_active: boolean().notNull(),
+	created_at: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	last_updated_at: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	param_text: text(),
+	param_num: numeric(),
+	enterprise_id: numeric(),
+});
+
 export const user_scheduled_meetingsInMasters = masters.table("user_scheduled_meetings", {
 	id: serial().primaryKey().notNull(),
 	user_id: integer().notNull(),
@@ -176,6 +177,24 @@ export const categoryInMasters = masters.table("category", {
 	title: text(),
 	description: text(),
 	parent_id: numeric(),
+	param_text: text(),
+	param_num: numeric(),
+	is_active: boolean().default(true),
+	created_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	last_updated_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const enterprisesInMasters = masters.table("enterprises", {
+	id: serial().primaryKey().notNull(),
+	title: text(),
+	description: text(),
+	parent_id: numeric(),
+	client_id: text(),
+	client_secret: text(),
+	redirect_url: text(),
+	logo_url: text(),
+	email: text(),
+	contact_number: text(),
 	param_text: text(),
 	param_num: numeric(),
 	is_active: boolean().default(true),
