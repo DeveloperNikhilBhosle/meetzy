@@ -157,3 +157,28 @@ export const user_scheduled_meetingsInMasters = masters.table("user_scheduled_me
 	meeting_type: text(),
 	platform: text(),
 });
+
+export const user_meeting_detailsInMasters = masters.table("user_meeting_details", {
+	id: serial().primaryKey().notNull(),
+	meeting_id: integer().notNull(),
+	category_id: integer().notNull(),
+	title: text(),
+	description: text(),
+	param_text: text(),
+	param_num: numeric(),
+	is_active: boolean().default(true),
+	created_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	last_updated_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const categoryInMasters = masters.table("category", {
+	id: serial().primaryKey().notNull(),
+	title: text(),
+	description: text(),
+	parent_id: numeric(),
+	param_text: text(),
+	param_num: numeric(),
+	is_active: boolean().default(true),
+	created_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	last_updated_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+});

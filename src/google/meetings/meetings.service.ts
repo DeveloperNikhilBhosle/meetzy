@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MeetZyDrizzleService } from 'src/dbmodels/meetzydb/meetzydb.drizzle.service';
-import { scheduleMeet } from './data-models/google-meeting';
-import { user_accountsInMasters, user_meetingsInMasters, user_timeslotsInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
+import { AddMeeting, scheduleMeet } from './data-models/google-meeting';
+import { user_accountsInMasters, user_meeting_detailsInMasters, user_meetingsInMasters, user_timeslotsInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
 import { desc, eq, like, and, sql, or } from 'drizzle-orm';
 import { util } from '../../../util';
 import { bytes } from 'drizzle-orm/gel-core';
@@ -9,6 +9,7 @@ import { datetime } from 'drizzle-orm/mysql-core';
 import { parseISO, format, isBefore, isAfter, addMinutes } from 'date-fns';
 import * as moment from 'moment';
 import { DateTime } from 'luxon';
+import { title } from 'process';
 
 @Injectable()
 export class MeetingsService {
@@ -960,6 +961,159 @@ export class MeetingsService {
             .where(and(eq(user_meetingsInMasters.user_id, userId), eq(user_meetingsInMasters.is_active, true)));
 
         return meetings;
+    }
+
+    async AddMeetings(userId: number, ip: AddMeeting) {
+        const user = await this.meetzy.db.select()
+            .from(usersInMasters)
+            .where(and(eq(usersInMasters.id, userId), eq(usersInMasters.is_active, true)));
+
+        if (user.length == 0) {
+            throw new BadRequestException("Invalid User Request");
+        }
+
+        const acc = await this.meetzy.db.select()
+            .from(user_accountsInMasters)
+            .where(and(eq(user_accountsInMasters.user_id, userId.toString()), eq(user_accountsInMasters.is_active, true), eq(user_accountsInMasters.email, ip.host_email)));
+
+        // Online Meeting 
+        if (ip.meeting_type_id == 1) {
+            const objOnline = {
+                user_id: userId,
+                title: ip.title,
+                description: ip.description,
+                host: ip.host_email,
+                meeting_type_id: ip.meeting_type_id,
+                default_attendees: ip.default_attendees,
+                created_at: sql`CURRENT_TIMESTAMP`,
+                last_updated_at: sql`CURRENT_TIMESTAMP`,
+                is_active: true,
+                duration_min: ip.duration_min,
+                account_id: acc[0].id.toString()
+            }
+            await this.meetzy.db.insert(user_meetingsInMasters).values(objOnline);
+            return {
+                status: 200,
+                messsge: "Meeting Added Successfully"
+            }
+
+        }
+        // In Person Meeting
+        else if (ip.meeting_type_id == 2) {
+            const objOnline = {
+                user_id: userId,
+                title: ip.title,
+                description: ip.description,
+                host: ip.host_email,
+                meeting_type_id: ip.meeting_type_id,
+                default_attendees: ip.default_attendees,
+                created_at: sql`CURRENT_TIMESTAMP`,
+                last_updated_at: sql`CURRENT_TIMESTAMP`,
+                is_active: true,
+                duration_min: ip.duration_min,
+                account_id: acc[0].id.toString()
+            }
+            const meet = await this.meetzy.db.insert(user_meetingsInMasters).values(objOnline).returning();
+
+
+            // 
+            ip.locations.forEach(async x => {
+                const objInPersonDetails = {
+                    meeting_id: meet[0].id,
+                    category_id: 2, // 2 = location
+                    title: x.location_name,
+                    description: x.location_name,
+                    param_text: x.google_map_link
+                }
+                await this.meetzy.db.insert(user_meeting_detailsInMasters).values(objInPersonDetails);
+            })
+
+            return {
+                status: 200,
+                messsge: "Meeting Added Successfully"
+            }
+        }
+        // Evenet 
+        else if (ip.meeting_type_id == 3) {
+
+            const objEvent = {
+                user_id: userId,
+                title: ip.title,
+                description: ip.description,
+                host: ip.host_email,
+                meeting_type_id: ip.meeting_type_id,
+                default_attendees: ip.default_attendees,
+                created_at: sql`CURRENT_TIMESTAMP`,
+                last_updated_at: sql`CURRENT_TIMESTAMP`,
+                is_active: true,
+                duration_min: '0',
+                account_id: acc[0].id.toString()
+            }
+            await this.meetzy.db.insert(user_meetingsInMasters).values(objEvent);
+            return {
+                status: 200,
+                messsge: "Event Added Successfully"
+            }
+        }
+        // Round Robin Meeting 
+        else if (ip.meeting_type_id == 4) {
+            const objOnline = {
+                user_id: userId,
+                title: ip.title,
+                description: ip.description,
+                host: ip.host_email,
+                meeting_type_id: ip.meeting_type_id,
+                default_attendees: ip.default_attendees,
+                created_at: sql`CURRENT_TIMESTAMP`,
+                last_updated_at: sql`CURRENT_TIMESTAMP`,
+                is_active: true,
+                duration_min: ip.duration_min,
+                account_id: acc[0].id.toString()
+            }
+            const meet = await this.meetzy.db.insert(user_meetingsInMasters).values(objOnline).returning();
+
+            ip.rr_hosts.forEach(async x => {
+                const objRRDetails = {
+                    meeting_id: meet[0].id,
+                    category_id: 3, // 2 = R R Hosts
+                    title: 'Round Robit Host',
+                    description: 'Email Id',
+                    param_text: x.hosts
+                }
+                await this.meetzy.db.insert(user_meeting_detailsInMasters).values(objRRDetails);
+            })
+        }
+
+        // Round Robin - In Person Meeting 
+        else if (ip.meeting_type_id == 5) {
+            const objOnline = {
+                user_id: userId,
+                title: ip.title,
+                description: ip.description,
+                host: ip.host_email,
+                meeting_type_id: ip.meeting_type_id,
+                default_attendees: ip.default_attendees,
+                created_at: sql`CURRENT_TIMESTAMP`,
+                last_updated_at: sql`CURRENT_TIMESTAMP`,
+                is_active: true,
+                duration_min: ip.duration_min,
+                account_id: acc[0].id.toString()
+            }
+            const meet = await this.meetzy.db.insert(user_meetingsInMasters).values(objOnline).returning();
+
+            ip.rr_host_inperson.forEach(async x => {
+                const objRRDetails = {
+                    meeting_id: meet[0].id,
+                    category_id: 4, // 4 = R R In Person
+                    title: x.hosts,
+                    description: x.location_name,
+                    param_text: x.google_map_link
+                }
+                await this.meetzy.db.insert(user_meeting_detailsInMasters).values(objRRDetails);
+            })
+        }
+
+
     }
 }
 

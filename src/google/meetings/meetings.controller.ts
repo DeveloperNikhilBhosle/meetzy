@@ -1,7 +1,7 @@
 import { Body, Controller, Request, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { MeetingsService } from './meetings.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { scheduleMeet } from './data-models/google-meeting';
+import { AddMeeting, scheduleMeet } from './data-models/google-meeting';
 import { JwtAuthGuard } from '../auth/jwt.auth';
 
 @Controller('api/schedule/')
@@ -40,5 +40,13 @@ export class MeetingsController {
     const { userId, email } = req.user;
     console.log(userId, 'userId');
     return await this.meetingsService.GetALLMeetingsMaster(userId);
+  }
+
+  @Post('add-meeting')
+  async AddMeeting(@Request() req, @Body() ip: AddMeeting) {
+    console.log(req, 'rew')
+    const { userId, email } = req.user;
+    console.log(userId, 'userId');
+    return await this.meetingsService.AddMeetings(userId, ip);
   }
 }
