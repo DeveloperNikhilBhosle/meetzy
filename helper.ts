@@ -22,4 +22,12 @@ export class Helper {
         }
     }
 
+    static isNullOrEmpty(value: string | null | undefined): boolean {
+        return !value || value.trim().length === 0;
+    }
+
+    static isNullOrInvalid(value: number | null | undefined): boolean {
+        return value === null || value === undefined || isNaN(value);
+    }
+
 }

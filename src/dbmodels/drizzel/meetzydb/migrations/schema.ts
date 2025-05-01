@@ -201,3 +201,17 @@ export const enterprisesInMasters = masters.table("enterprises", {
 	created_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 	last_updated_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const webhook_details = pgTable("webhook_details", {
+	id: serial().primaryKey().notNull(),
+	enterprise_id: numeric(),
+	event_id: numeric(),
+	link: text(),
+	client_id: text(),
+	client_secret: text(),
+	param_text: text(),
+	param_num: numeric(),
+	is_active: boolean().default(true),
+	created_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+	last_updated_at: timestamp({ mode: 'string' }).default(sql`CURRENT_TIMESTAMP`),
+});

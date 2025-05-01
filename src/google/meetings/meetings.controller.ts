@@ -4,14 +4,14 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AddMeeting, scheduleMeet } from './data-models/google-meeting';
 import { JwtAuthGuard } from '../auth/jwt.auth';
 
-@Controller('api/schedule/')
+@Controller('api')
 @ApiTags('Google Meetings API')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class MeetingsController {
   constructor(private readonly meetingsService: MeetingsService) { }
 
-  @Post('google-meeting')
+  @Post('schedule/google-meeting')
   async scheudlemeet(@Body() meetdetails: scheduleMeet) {
 
     console.log(meetdetails);

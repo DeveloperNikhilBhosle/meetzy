@@ -7,6 +7,7 @@ import { MeetZyDatabaseModule } from './dbmodels/meetzydb/meetzydb.drizzle.modul
 import { UsersModule } from './google/users/users.module';
 import 'dotenv/config';
 import { AuthModule } from './google/auth/auth.module';
+import { DeveloperModule } from './google/developer/developer.module';
 
 @Module({
   imports: [AuthModule,
@@ -19,7 +20,8 @@ import { AuthModule } from './google/auth/auth.module';
       }),
     }),
     MeetingsModule,
-    UsersModule],
+    UsersModule,
+    DeveloperModule],
   controllers: [AppController],
   providers: [AppService],
 })
