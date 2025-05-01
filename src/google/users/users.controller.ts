@@ -35,4 +35,13 @@ export class UsersController {
     return await this.usersService.GetScores(email?.toString());
 
   }
+
+  @Get('user-profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async GetUserProfile(@Request() req) {
+    const { user_id, email } = req.user;  // Extract userId and email from req.user
+
+    return await this.usersService.GetScores(email?.toString());
+  }
 }

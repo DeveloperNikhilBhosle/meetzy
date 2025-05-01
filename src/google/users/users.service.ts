@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { userList, users } from './users';
 import { MeetZyDrizzleService } from 'src/dbmodels/meetzydb/meetzydb.drizzle.service';
 import { menusInMasters, rolesInMasters, user_accountsInMasters, user_meetingsInMasters, user_role_menusInMasters, user_rolesInMasters, usersInMasters } from 'src/dbmodels/drizzel/meetzydb/migrations/schema';
@@ -145,5 +145,48 @@ export class UsersService {
             active: 12,
             cancelled: 32
         }
+    }
+
+    async GetUserProfile(userId: number) {
+        const user = await this.meetzy.db.select({
+            name: usersInMasters.name,
+            email: usersInMasters.email,
+            mobile_number: usersInMasters.phone_number,
+            image: usersInMasters.param_text
+
+        })
+            .from(usersInMasters)
+            .where(and(eq(usersInMasters.id, userId), eq(usersInMasters.is_active, true)));
+
+        if (user.length == 0) {
+            throw new BadRequestException("Invalid User Request");
+        }
+
+        const linkedAcc = await this.meetzy.db.select({
+            email: user_accountsInMasters.email,
+            name: user_accountsInMasters.name
+        }).from(user_accountsInMasters)
+            .where(and(eq(user_accountsInMasters.user_id, userId.toString()), eq(user_accountsInMasters.is_active, true)));
+
+        type acc = {
+            name: string,
+            email: string
+        }
+        let linkedAccArray: acc[] = [];
+        linkedAcc.forEach(a => {
+            linkedAccArray.push({
+                name: a.name,
+                email: a.email
+            });
+        });
+
+        return {
+            name: user[0].name,
+            email: user[0].email,
+            mobile_number: user[0].mobile_number,
+            image: user[0].image,
+            linkedAcc: linkedAcc
+        }
+
     }
 }
